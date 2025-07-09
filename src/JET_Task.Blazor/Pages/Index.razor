@@ -1,0 +1,253 @@
+@page "/"
+@using JET_Task.Blazor.Models
+@using JET_Task.Blazor.Services
+@inject IMovieService MovieService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Movie Search</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Movie Search</h1>
+    
+    <!-- Search Form -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Enter movie title..." 
+                       @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleKeyPress" />
+                <button class="btn btn-primary" @onclick="SearchMovies" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                    }
+                    else
+                    {
+                        <span>Search</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Queries -->
+    @if (latestQueries.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5>Recent Searches:</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var query in latestQueries)
+                    {
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => LoadQuery(query.Query)">
+                            @query.Query (@query.ResultCount results)
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Search Results -->
+    @if (searchResult != null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <h5>Search Results for "@searchResult.Query" (@searchResult.TotalResults found)</h5>
+                
+                @if (searchResult.Movies.Any())
+                {
+                    <div class="row">
+                        @foreach (var movie in searchResult.Movies)
+                        {
+                            <div class="col-md-4 col-lg-3 mb-4">
+                                <div class="card h-100">
+                                    @if (!string.IsNullOrEmpty(movie.Poster) && movie.Poster != "N/A")
+                                    {
+                                        <img src="@movie.Poster" class="card-img-top" alt="@movie.Title" style="height: 300px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                                            <i class="fas fa-film fa-3x text-muted"></i>
+                                        </div>
+                                    }
+                                    <div class="card-body">
+                                        <h6 class="card-title">@movie.Title</h6>
+                                        <p class="card-text text-muted">@movie.Year</p>
+                                        @if (!string.IsNullOrEmpty(movie.ImdbRating) && movie.ImdbRating != "N/A")
+                                        {
+                                            <p class="card-text">
+                                                <i class="fas fa-star text-warning"></i> @movie.ImdbRating
+                                            </p>
+                                        }
+                                        <button class="btn btn-primary btn-sm" @onclick="() => ShowMovieDetails(movie.ImdbId)">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        No movies found for "@searchResult.Query"
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Error Message -->
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            @errorMessage
+        </div>
+    }
+</div>
+
+<!-- Movie Details Modal -->
+@if (selectedMovie != null)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@selectedMovie.Title</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            @if (!string.IsNullOrEmpty(selectedMovie.Poster) && selectedMovie.Poster != "N/A")
+                            {
+                                <img src="@selectedMovie.Poster" class="img-fluid" alt="@selectedMovie.Title" />
+                            }
+                            else
+                            {
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                                    <i class="fas fa-film fa-4x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h6>Year: @selectedMovie.Year</h6>
+                            @if (!string.IsNullOrEmpty(selectedMovie.ImdbRating) && selectedMovie.ImdbRating != "N/A")
+                            {
+                                <h6><i class="fas fa-star text-warning"></i> IMDb Rating: @selectedMovie.ImdbRating</h6>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Director) && selectedMovie.Director != "N/A")
+                            {
+                                <h6>Director: @selectedMovie.Director</h6>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Actors) && selectedMovie.Actors != "N/A")
+                            {
+                                <h6>Actors: @selectedMovie.Actors</h6>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Genre) && selectedMovie.Genre != "N/A")
+                            {
+                                <h6>Genre: @selectedMovie.Genre</h6>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Runtime) && selectedMovie.Runtime != "N/A")
+                            {
+                                <h6>Runtime: @selectedMovie.Runtime</h6>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Plot) && selectedMovie.Plot != "N/A")
+                            {
+                                <h6>Plot:</h6>
+                                <p>@selectedMovie.Plot</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private string searchQuery = string.Empty;
+    private SearchResultDto? searchResult;
+    private MovieDto? selectedMovie;
+    private List<SearchQueryDto> latestQueries = new();
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLatestQueries();
+    }
+
+    private async Task SearchMovies()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+            return;
+
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            searchResult = await MovieService.SearchMoviesAsync(searchQuery);
+            await LoadLatestQueries();
+        }
+        catch
+        {
+            errorMessage = "An error occurred while searching. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchMovies();
+        }
+    }
+
+    private async Task LoadQuery(string query)
+    {
+        searchQuery = query;
+        await SearchMovies();
+    }
+
+    private async Task ShowMovieDetails(string imdbId)
+    {
+        try
+        {
+            selectedMovie = await MovieService.GetMovieByIdAsync(imdbId);
+        }
+        catch
+        {
+            errorMessage = "An error occurred while loading movie details.";
+        }
+    }
+
+    private void CloseModal()
+    {
+        selectedMovie = null;
+    }
+
+    private async Task LoadLatestQueries()
+    {
+        try
+        {
+            var queries = await MovieService.GetLatestQueriesAsync();
+            latestQueries = queries.ToList();
+        }
+        catch
+        {
+            // Silently fail for latest queries
+        }
+    }
+} 

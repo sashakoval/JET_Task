@@ -1,0 +1,57 @@
+services:
+  # Redis for search query storage
+  redis:
+    image: redis:7-alpine
+    container_name: jet-task-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Service
+  api:
+    build:
+      context: ./src
+      dockerfile: JET_Task.Api/Dockerfile
+    container_name: jet-task-api
+    ports:
+      - "7001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Redis=redis:6379
+      - OmdbApi__ApiKey=${OMDB_API_KEY}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Blazor Frontend
+  blazor:
+    build:
+      context: ./src
+      dockerfile: JET_Task.Blazor/Dockerfile
+    container_name: jet-task-blazor
+    ports:
+      - "7000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data: 
