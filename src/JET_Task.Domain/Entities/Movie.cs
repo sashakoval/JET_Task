@@ -1,5 +1,3 @@
-using System;
-
 namespace JET_Task.Domain.Entities
 {
     public class Movie

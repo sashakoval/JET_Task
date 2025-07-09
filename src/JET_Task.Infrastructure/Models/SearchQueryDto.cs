@@ -1,5 +1,3 @@
-using System;
-
 namespace JET_Task.Infrastructure.Models
 {
     public class SearchQueryDto

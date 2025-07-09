@@ -316,5 +316,8 @@ This project is for educational purposes and demonstrates modern .NET developmen
 5. Test with Docker deployment
 
 ---
+## Screenshots
+
+![Movie Search Interface](docs/image.png)
 
 **Built with ❤️ using .NET 8, Blazor, Clean Architecture, and Docker**

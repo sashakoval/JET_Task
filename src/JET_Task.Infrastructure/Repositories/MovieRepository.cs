@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AutoMapper;
 using JET_Task.Domain.Entities;
 using JET_Task.Domain.Interfaces;
-using JET_Task.Infrastructure.Models;
 using JET_Task.Infrastructure.Services;
 
 namespace JET_Task.Infrastructure.Repositories

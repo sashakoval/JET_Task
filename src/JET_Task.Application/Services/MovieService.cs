@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using JET_Task.Application.DTOs;
 using JET_Task.Domain.Entities;

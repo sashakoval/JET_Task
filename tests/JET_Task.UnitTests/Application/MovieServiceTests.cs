@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JET_Task.Application.DTOs;
 using JET_Task.Application.Services;
 using JET_Task.Application.Mapping;
 using JET_Task.Domain.Entities;

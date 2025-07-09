@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 
 namespace JET_Task.Domain.Entities

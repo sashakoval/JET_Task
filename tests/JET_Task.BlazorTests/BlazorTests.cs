@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace JET_Task.BlazorTests
 {
     public class BlazorTests
