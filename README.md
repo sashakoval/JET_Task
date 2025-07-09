@@ -318,6 +318,6 @@ This project is for educational purposes and demonstrates modern .NET developmen
 ---
 ## Screenshots
 
-![Movie Search Interface](docs/image.png)
+![Movie Search Interface](img/image.png)
 
 **Built with ❤️ using .NET 8, Blazor, Clean Architecture, and Docker**
